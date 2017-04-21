@@ -82,43 +82,43 @@ int FeatureAnalyzer::Analyze(char *filename) {
             
             WeightedAuthorship wa;
 
-	    FunctionType retCode = AnalyzeFunction(f , obj, filename, wa);
-	    fprintf(config->funcToAuthorFile, "%s %lx", filename, f->addr());
-	    wa.print(config->funcToAuthorFile);
-	    stat.Increment(retCode);
-	    if (retCode == PartialAuthorSignal || retCode == PureAuthorSignal){
+            FunctionType retCode = AnalyzeFunction(f , obj, filename, wa);
+            fprintf(config->funcToAuthorFile, "%s %lx", filename, f->addr());
+            wa.print(config->funcToAuthorFile);
+            stat.Increment(retCode);
+            if (retCode == PartialAuthorSignal || retCode == PureAuthorSignal){
                 fprintf(config->sourceFuncsFile, "%s\n", f->name().c_str());
-	    }
-	    if (retCode == PartialAuthorSignal) {
-	        stat.IncrementPartial(wa.type());
-	    }	
+            }
+            if (retCode == PartialAuthorSignal) {
+                stat.IncrementPartial(wa.type());
+            }        
             if (retCode != PureAuthorSignal){
                 continue;    
-	    }	   
-	    // Currently we only care about functions with 
-	    // Pure authorship label.	  
-	    ContributionType type = wa.type();
-	    stat.Increment(type);
-	    /*
-	    if (type == Empty) {
-	        printf("%s contains empty WA\n", f->name().c_str());
-	    }
-	    */
+            }           
+            // Currently we only care about functions with 
+            // Pure authorship label.          
+            ContributionType type = wa.type();
+            stat.Increment(type);
+            /*
+            if (type == Empty) {
+                printf("%s contains empty WA\n", f->name().c_str());
+            }
+            */
             if (type != Pure) {
-	        continue;
-	    }
-	    ++funcCount[f->name()];
-//	    printf("%d\n", funcCount[f->name()]);
-	    if (funcCount[f->name()] != 1) continue;
+                continue;
+            }
+            ++funcCount[f->name()];
+//            printf("%d\n", funcCount[f->name()]);
+            if (funcCount[f->name()] != 1) continue;
 
-	    int label = wa.MaxAuthor();
+            int label = wa.MaxAuthor();
             if (config->idiomFeature) ProduceIdiomFeature(f, label);
             if (config->graphletFeature) ProduceGraphletFeature(f, label);
             if (config->libcallFeature) ProduceLibcallFeature(co, f, label);
             if (config->ngramFeature) ProduceNGramFeature(sts, f, label);
-	    if (config->dataFeature) ProduceDataFeature(f, obj, label);
-	    if (config->statFeature) ProduceStatFeature(f, label);
-	    ProduceDataSetStatInfo(filename, f);
+            if (config->dataFeature) ProduceDataFeature(f, obj, label);
+            if (config->statFeature) ProduceStatFeature(f, label);
+            ProduceDataSetStatInfo(filename, f);
 
         }
     }
@@ -151,11 +151,11 @@ FunctionType FeatureAnalyzer::AnalyzeFunction(ParseAPI::Function *f, Symtab *obj
         totalBytes += b->end() - b->start();
         
         assert(b != NULL);
-	assert(b->region() != NULL);
-	if (f->name().find("event_query") != string::npos) {
-	printf("For function %s\n", f->name().c_str());
-	AnalyzeBasicBlock(b, obj, funcWA, binaryFileName);
-	}
+        assert(b->region() != NULL);
+        if (f->name().find("event_query") != string::npos) {
+        printf("For function %s\n", f->name().c_str());
+        AnalyzeBasicBlock(b, obj, funcWA, binaryFileName);
+        }
         
     }
     //printf("%s:Total bytes %d; Fail found bytes %.0lf; Unknown line bytes %.0lf; Unmatch bytes %.0lf\n",f->name().c_str(), totalBytes, failFound, unknownLine, unknownLib);
@@ -163,7 +163,7 @@ FunctionType FeatureAnalyzer::AnalyzeFunction(ParseAPI::Function *f, Symtab *obj
         return PureAuthorSignal;
     else if (totalBytes > failFound + unknownLine + unknownLib + 1e-6)
         return PartialAuthorSignal;
-    else if (totalBytes < failFound + 1e-6)	    
+    else if (totalBytes < failFound + 1e-6)            
         return MappingFail; 
     else if (totalBytes < unknownLib + 1e-6)
         return UnfoundFile;
@@ -178,7 +178,7 @@ int FeatureAnalyzer::AnalyzeBasicBlock(ParseAPI::Block* b,Symtab* obj, WeightedA
     
     if(!buf) {
         dprintf("cannot get ptr to instruction\n");
-	return -1;
+        return -1;
     }
 
     Address cur = b->start();
@@ -186,49 +186,49 @@ int FeatureAnalyzer::AnalyzeBasicBlock(ParseAPI::Block* b,Symtab* obj, WeightedA
     Instruction::Ptr insn;
     int fail = 0;
     auto ait = lower_bound(addrLineInfo.begin(), addrLineInfo.end(), make_pair((int)cur, vector<LineNoTuple*>()));
-    while((insn = dec.decode())) {        	
-	if (ait != addrLineInfo.end() && ait->second.size() > 0){
-	    vector<LineNoTuple*> &lines = ait->second;
+    while((insn = dec.decode())) {                
+        if (ait != addrLineInfo.end() && ait->second.size() > 0){
+            vector<LineNoTuple*> &lines = ait->second;
             // If this instruction corresponds to several lines in source code,
             // we split the contribution of authorship evenly to each line.
             
-	    double share = 1.0 * insn->size() / lines.size();
+            double share = 1.0 * insn->size() / lines.size();
 
             for (auto lineIt = lines.begin(); lineIt != lines.end(); ++lineIt){
-	        // lineIt->first  : the full path of the file
-		// lineIt->second : the line number inside the file
-	        printf("\tLine info for addr %lx\n", cur);	
-	        AnalyzeLineNoTuple((*lineIt)->first, (*lineIt)->second, funcWA, share, binaryFileName);                     
+                // lineIt->first  : the full path of the file
+                // lineIt->second : the line number inside the file
+                printf("\tLine info for addr %lx\n", cur);        
+                AnalyzeLineNoTuple((*lineIt)->first, (*lineIt)->second, funcWA, share, binaryFileName);                     
             } 
-	} else {
+        } else {
             // We cannot get line number for information for this instruction.
             failFound += insn->size();
-	    //printf("Line number interface failed for: %x %s\n",cur,  insn->format().c_str());
-	    ++fail;
+            //printf("Line number interface failed for: %x %s\n",cur,  insn->format().c_str());
+            ++fail;
 
         }
 
         // get ready for the next instruction
         cur += insn->size();
-	++ait;
+        ++ait;
     }
     ++totalBasicBlock;
     if (fail) {
         ++failedBasicBlock;
-	/*
+        /*
         int total = 0;
         printf("Block %x contains instructions that cannot be mapped to source liens\n", b->start());
-	Address cur = b->start();
-	InstructionDecoder dec((unsigned char*)buf,b->size(),b->region()->getArch());
-	Instruction::Ptr insn;
-	while((insn = dec.decode())) {
-	    printf("%x %s\n", cur, insn->format().c_str());
-	    cur += insn->size();
-	    ++total;
-	}
-	if (total == fail) printf("All block fail\n"); else printf("Partial block fail\n");
-	printf("\n");
-	*/
+        Address cur = b->start();
+        InstructionDecoder dec((unsigned char*)buf,b->size(),b->region()->getArch());
+        Instruction::Ptr insn;
+        while((insn = dec.decode())) {
+            printf("%x %s\n", cur, insn->format().c_str());
+            cur += insn->size();
+            ++total;
+        }
+        if (total == fail) printf("All block fail\n"); else printf("Partial block fail\n");
+        printf("\n");
+        */
     }
 
     return 0;
@@ -242,50 +242,50 @@ int FeatureAnalyzer::AnalyzeLineNoTuple(const char *filename, int lineNumber, We
         // This line is not from the code repository.
         // It comes from external library like libc++
         dprintf("No match for file %s\n", filename);
-//	if (string(filename).find("apr")!=string::npos)
+//        if (string(filename).find("apr")!=string::npos)
         unknownLib += share;
-	missingFiles.insert(string(filename));
-	if (strstr(filename, "/u/x/m/xmeng/public/gcc/gcc/config/i386") == filename) unknownLib = 0;
-	if (strstr(filename, "gcc-test/objdir/") != NULL) unknownLib = 0;
-	if (strstr(filename, "./") != NULL) unknownLib = 0;
-	if (strstr(filename, "/u/x/m/xmeng/public/gcc/mpfr/") != NULL) unknownLib = 0;
+        missingFiles.insert(string(filename));
+        if (strstr(filename, "/u/x/m/xmeng/public/gcc/gcc/config/i386") == filename) unknownLib = 0;
+        if (strstr(filename, "gcc-test/objdir/") != NULL) unknownLib = 0;
+        if (strstr(filename, "./") != NULL) unknownLib = 0;
+        if (strstr(filename, "/u/x/m/xmeng/public/gcc/mpfr/") != NULL) unknownLib = 0;
     } else {
         // We find a match or multiple matches for the instruction.
-	// In either case, we can calculate the author contribution.
+        // In either case, we can calculate the author contribution.
 
         pair<string, FileWA*> bestMatch;
-	if (match.size() == 1){
-	    // The only file to map into
-	    bestMatch = match[0];
-	} else {
-	    // We find multiple files matching the file name given
-	    // by the line number interface.
-	    if (config->debug){
-	        printf("Multiple match for files: %s\n", filename);
-		for (size_t i = 0; i < match.size(); ++i)
-		    printf("%s\n", match[i].first.c_str());
-	    }
-	    pair<string, string> p =  make_pair(string(binaryFileName), string(filename));
+        if (match.size() == 1){
+            // The only file to map into
+            bestMatch = match[0];
+        } else {
+            // We find multiple files matching the file name given
+            // by the line number interface.
+            if (config->debug){
+                printf("Multiple match for files: %s\n", filename);
+                for (size_t i = 0; i < match.size(); ++i)
+                    printf("%s\n", match[i].first.c_str());
+            }
+            pair<string, string> p =  make_pair(string(binaryFileName), string(filename));
             bestMatch = ResolveBestMatch(p, match);
   
             vector<string> candidateFiles;
-	    for (auto iter = match.begin(); iter != match.end(); ++iter)
-	        candidateFiles.push_back(iter->first);
-	    ambiguousFileMatches.insert(make_pair(string(binaryFileName), candidateFiles));
+            for (auto iter = match.begin(); iter != match.end(); ++iter)
+                candidateFiles.push_back(iter->first);
+            ambiguousFileMatches.insert(make_pair(string(binaryFileName), candidateFiles));
 
         }
-   	// After determining which file to map to, we calculate the contribution
-	FileWA* fileWAAddr = bestMatch.second;
-	WeightedAuthorship* waAddr;
+           // After determining which file to map to, we calculate the contribution
+        FileWA* fileWAAddr = bestMatch.second;
+        WeightedAuthorship* waAddr;
 
         if (fileWAAddr->GetALine(lineNumber, waAddr) < 0 ) {
-	    // Out of the source file range
-	    // Could be produced by compilers
+            // Out of the source file range
+            // Could be produced by compilers
             unknownLine += share;
-	    //printf("Out of range for %s at line %d for %s, matched by %s\n", filename, lineNumber, binaryFileName, bestMatch.first.c_str());
+            //printf("Out of range for %s at line %d for %s, matched by %s\n", filename, lineNumber, binaryFileName, bestMatch.first.c_str());
         } else {
             // find WA responsible for the line, add the share to the author
-	    funcWA.Update(waAddr, share);
+            funcWA.Update(waAddr, share);
         }
     }
     return 0;
@@ -327,11 +327,11 @@ void FeatureAnalyzer::RecordAllInternalFunction(BPatch_image *image, ParseAPI::C
     vector<BPatch_function*> *funcs = image->getProcedures();
     for (auto fit = funcs->begin(); fit != funcs->end(); ++fit){
         BPatch_function *bpatch_func = *fit;
-	ParseAPI::Function *parse_func = ParseAPI::convert(bpatch_func);
+        ParseAPI::Function *parse_func = ParseAPI::convert(bpatch_func);
         if (co->cs()->linkage().find(parse_func->addr()) == co->cs()->linkage().end()){
-	    vector<string> names;
-	    bpatch_func->getMangledNames(names);
-	    internalFuncs.insert(names.begin(), names.end());
+            vector<string> names;
+            bpatch_func->getMangledNames(names);
+            internalFuncs.insert(names.begin(), names.end());
         }
     }
 }
@@ -372,20 +372,20 @@ void FeatureAnalyzer::Write(int fd) {
     int size = str.size();
     if (write(fd, &size, sizeof(int)) != sizeof(int)) {
         fprintf(stderr, "fail in writing the size\n");
-	return;
+        return;
     }
     const char* buf = str.c_str();
     int cnt = 0;
     while (cnt < size) {
         int ret = write(fd, buf + cnt, size - cnt);
-	if (ret < 0) {
-	    fprintf(stderr, "fail in writing the object: %s\n", strerror(errno));
-	    return;
-	} else if (ret == 0) {
-	    fprintf(stderr, "write 0 bytes for the object\n");
-	    return;
-	}
-	cnt += ret;
+        if (ret < 0) {
+            fprintf(stderr, "fail in writing the object: %s\n", strerror(errno));
+            return;
+        } else if (ret == 0) {
+            fprintf(stderr, "write 0 bytes for the object\n");
+            return;
+        }
+        cnt += ret;
     }
 }
 
@@ -397,28 +397,28 @@ void FeatureAnalyzer::Read(int fd) {
     char* buf = (char*)(&size);
     while (cnt < sizeof(int)) {
         int ret = read(fd, buf + cnt, sizeof(int) - cnt);
-	if (ret < 0) {
-	    fprintf(stderr, "fail in reading the size: %s\n", strerror(errno));
-	    return;
-	} else if (ret == 0) {
-	    fprintf(stderr, "read 0 bytes for the size\n");
-	    return;
-	}
-	cnt += ret;   
+        if (ret < 0) {
+            fprintf(stderr, "fail in reading the size: %s\n", strerror(errno));
+            return;
+        } else if (ret == 0) {
+            fprintf(stderr, "read 0 bytes for the size\n");
+            return;
+        }
+        cnt += ret;   
     }
     buf = new char[size];
     cnt = 0;
     while (cnt < size) {
         int ret = read(fd, buf + cnt, size - cnt);
-	if (ret < 0) {
-	    fprintf(stderr, "fail in reading the object: %s\n", strerror(errno));
-	    delete buf;
-	    return;
-	} else if (ret == 0) {
-	    fprintf(stderr, "read 0 bytes for the object\n");
-	    return;
-	}
-	cnt += ret;   
+        if (ret < 0) {
+            fprintf(stderr, "fail in reading the object: %s\n", strerror(errno));
+            delete buf;
+            return;
+        } else if (ret == 0) {
+            fprintf(stderr, "read 0 bytes for the object\n");
+            return;
+        }
+        cnt += ret;   
     }
     string str(buf, size);
     istringstream iss(str);
@@ -442,7 +442,7 @@ int FeatureAnalyzer::PrefetchLineInformation(CodeObject *co, SymtabCodeSource *s
     vector<Module*> mods;
     if (!symtab->getAllModules(mods)) {
         fprintf(stderr, "There is no module in the symtab object\n");
-	return -1;
+        return -1;
     }
     addrLineInfo.clear();
     const CodeObject::funclist &funcs = co->funcs();
@@ -462,45 +462,45 @@ int FeatureAnalyzer::PrefetchLineInformation(CodeObject *co, SymtabCodeSource *s
                 continue;
             
             set<Offset> seen;
-	    for (auto bit = f->blocks().begin(); bit != f->blocks().end(); ++bit){
-	        Block *b = *bit;
-		if (seen.find(b->start()) != seen.end()) 
-		    continue;      
+            for (auto bit = f->blocks().begin(); bit != f->blocks().end(); ++bit){
+                Block *b = *bit;
+                if (seen.find(b->start()) != seen.end()) 
+                    continue;      
                 seen.insert(b->start());         
                 assert(b != NULL);
-	        assert(b->region() != NULL);
+                assert(b->region() != NULL);
                 void * buf  = b->region()->getPtrToInstruction(b->start());
                 if(!buf) {
-		     dprintf("cannot get ptr to instruction\n");
-		     return -1;
-		}
-		Address cur = b->start();
-		InstructionDecoder dec((unsigned char*)buf,b->size(),b->region()->getArch());
-		Instruction::Ptr insn;
-		while((insn = dec.decode())) {
-		    vector<LineNoTuple> lines;
-		    addrLineInfo.push_back(make_pair(cur, vector<LineNoTuple*>()));
+                     dprintf("cannot get ptr to instruction\n");
+                     return -1;
+                }
+                Address cur = b->start();
+                InstructionDecoder dec((unsigned char*)buf,b->size(),b->region()->getArch());
+                Instruction::Ptr insn;
+                while((insn = dec.decode())) {
+                    vector<LineNoTuple> lines;
+                    addrLineInfo.push_back(make_pair(cur, vector<LineNoTuple*>()));
                     cur += insn->size();
-		}      
+                }      
             }
         }
     }
     sort(addrLineInfo.begin(), addrLineInfo.end());
     for (auto mit = mods.begin(); mit != mods.end(); ++mit) {
         Module *mod = *mit;
-	LineInformation *info = mod->getLineInformation();
-	if (info == NULL) {
-	    //fprintf(stderr, "Module %s has no line number information\n", mod->fullName().c_str());
-	    continue;
-	}
-	for (auto lit = info->begin(); lit != info->end(); ++lit) {
-	    const pair<Offset, Offset> addrRange = lit->first;
-	    LineNoTuple *lt = (LineNoTuple*)(&(lit->second));	    
-	    auto itLow = lower_bound(addrLineInfo.begin(), addrLineInfo.end(), make_pair((int)addrRange.first, vector<LineNoTuple*>()));
-	    for (auto iter = itLow; iter != addrLineInfo.end() && iter->first < addrRange.second; ++iter)
-	        iter->second.push_back(lt);
+        LineInformation *info = mod->getLineInformation();
+        if (info == NULL) {
+            //fprintf(stderr, "Module %s has no line number information\n", mod->fullName().c_str());
+            continue;
+        }
+        for (auto lit = info->begin(); lit != info->end(); ++lit) {
+            const pair<Offset, Offset> addrRange = lit->first;
+            LineNoTuple *lt = (LineNoTuple*)(&(lit->second));            
+            auto itLow = lower_bound(addrLineInfo.begin(), addrLineInfo.end(), make_pair((int)addrRange.first, vector<LineNoTuple*>()));
+            for (auto iter = itLow; iter != addrLineInfo.end() && iter->first < addrRange.second; ++iter)
+                iter->second.push_back(lt);
 
-	}
+        }
     }
     return 0;
 }

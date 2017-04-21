@@ -38,7 +38,7 @@ void ReadableIdiom(char * str) {
             t |= NOARG;
         }
         IdiomTerm term(t);
-	printf("%s; ", term.human_format().c_str());
+        printf("%s; ", term.human_format().c_str());
     }
     printf("\n");
 }

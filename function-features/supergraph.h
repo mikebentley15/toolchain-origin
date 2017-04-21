@@ -73,7 +73,7 @@ class graph {
         edge * e = new edge(A,B,t);
         A->out_.push_back(e);
         B->in_.push_back(e); 
-	edges_.push_back(e);
+        edges_.push_back(e);
         return e;
     }
 
@@ -98,11 +98,11 @@ class graph {
     std::vector<edge*> edges_;
 
     void enumerate_subgraphs(std::set<snode*> &notConsidered,
-			     std::set<snode*> &neighbors,
-			     std::set<snode*> &cur,
-			     int size,
-			     std::map<graphlet,int> &counts,
-			     bool docolor, bool doanon);
+                             std::set<snode*> &neighbors,
+                             std::set<snode*> &cur,
+                             int size,
+                             std::map<graphlet,int> &counts,
+                             bool docolor, bool doanon);
 };
 
 }

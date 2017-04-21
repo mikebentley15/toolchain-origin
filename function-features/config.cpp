@@ -36,14 +36,14 @@ int Config::ReadConfigFile(const char * path) {
         
         if (!strcmp(option, "featuretype")) {
             fscanf(f, "%s", str);
-	    for (int i = 0; featString[i] != NULL && strcmp(featString[i], str); ++i);
-	    if (featString[i] != NULL)
-	        featType = i;
+            for (int i = 0; featString[i] != NULL && strcmp(featString[i], str); ++i);
+            if (featString[i] != NULL)
+                featType = i;
         }
 
-	if (!strcmp(option, "featuresize")) {
-	    fscanf(f, "%d", featSize);
-	}
+        if (!strcmp(option, "featuresize")) {
+            fscanf(f, "%d", featSize);
+        }
         
        
         if (!strcmp(option, "debug")){
@@ -54,7 +54,7 @@ int Config::ReadConfigFile(const char * path) {
 
     if (featType < 0) {
         fprintf(stderr, "Incorrect feature type!\n");
-	return -1;
+        return -1;
     }
 
     return 0;

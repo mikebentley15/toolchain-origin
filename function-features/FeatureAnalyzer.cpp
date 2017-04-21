@@ -26,12 +26,12 @@ int FeatureAnalyzer::Setup(const char *bPath, int fSize, const char *oPre) {
     SymtabCodeSource *sts = new SymtabCodeSource((char *)bPath);
     if (sts == NULL) {
         fprintf(stderr, "Cannot create SymtabCodeSource for %s\n", bPath);
-	return -1;
+        return -1;
     }
     co = new CodeObject(sts);
     if (co == NULL) {
         fprintf(stderr, "Cannot create CodeObject for %s\n", bPath);
-	return -1;
+        return -1;
     }
     co->parse();
     return 0;
@@ -47,7 +47,7 @@ void FeatureAnalyzer::AddFeat(const std::string &feat) {
     auto fit = featureIndex.find(feat);
     if (fit == featureIndex.end()) {
         ++totalFeatures;
-	featureIndex.insert(make_pair(feat, totalFeatures));
+        featureIndex.insert(make_pair(feat, totalFeatures));
     }
 }
 

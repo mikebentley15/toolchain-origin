@@ -152,17 +152,17 @@ void Lookup<IdiomFeature>::lookup_idiom_cross_blk(
 
     if(ct->entry_id != ILLEGAL_ENTRY) {
         if (addr == b->last()) {
-	    // We reach the end of the block, jump to sucessor blocks
-	    for (auto eit = b->targets().begin(); eit != b->targets().end(); ++eit) {
-	        Edge *e = *eit;
-		if (e->sinkEdge() || e->interproc()) continue;
-		lookup_idiom_cross_blk(size, f, e->trg(), e->trg()->start(), next, depth+1, stack, feats);
-	    }
-	        
-	} else {
-	    // Continue in the same block
-	    lookup_idiom_cross_blk(size, f, b, addr+ct->len,next,depth+1,stack,feats);
-	}
+            // We reach the end of the block, jump to sucessor blocks
+            for (auto eit = b->targets().begin(); eit != b->targets().end(); ++eit) {
+                Edge *e = *eit;
+                if (e->sinkEdge() || e->interproc()) continue;
+                lookup_idiom_cross_blk(size, f, e->trg(), e->trg()->start(), next, depth+1, stack, feats);
+            }
+                
+        } else {
+            // Continue in the same block
+            lookup_idiom_cross_blk(size, f, b, addr+ct->len,next,depth+1,stack,feats);
+        }
     }
 
     stack.pop_back();
@@ -175,17 +175,17 @@ void Lookup<IdiomFeature>::lookup_idiom_cross_blk(
 
     if(ct->entry_id != ILLEGAL_ENTRY) {
         if (addr == b->last()) {
-	    // We reach the end of the block, jump to sucessor blocks
-	    for (auto eit = b->targets().begin(); eit != b->targets().end(); ++eit) {
-	        Edge *e = *eit;
-		if (e->sinkEdge() || e->interproc()) continue;
-		lookup_idiom_cross_blk(size, f, e->trg(), e->trg()->start(), next, depth+1, stack, feats);
-	    }
-	        
-	} else {
-	    // Continue in the same block
-	    lookup_idiom_cross_blk(size, f, b, addr+ct->len,next,depth+1,stack,feats);
-	}
+            // We reach the end of the block, jump to sucessor blocks
+            for (auto eit = b->targets().begin(); eit != b->targets().end(); ++eit) {
+                Edge *e = *eit;
+                if (e->sinkEdge() || e->interproc()) continue;
+                lookup_idiom_cross_blk(size, f, e->trg(), e->trg()->start(), next, depth+1, stack, feats);
+            }
+                
+        } else {
+            // Continue in the same block
+            lookup_idiom_cross_blk(size, f, b, addr+ct->len,next,depth+1,stack,feats);
+        }
     }
 
     stack.pop_back();

@@ -14,11 +14,11 @@ typedef enum {
 
 char* featString[] = { "idiom", 
                        "graphlet", 
-		       "libcall", 
-		       "ngram",
+                       "libcall", 
+                       "ngram",
                        "metrics",
-		       "data",
-		       NULL}
+                       "data",
+                       NULL}
 
 
 

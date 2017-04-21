@@ -29,12 +29,12 @@ void PrintCodeRange(char *bPath, char *oPre) {
     Symtab *obj;
     if (!Symtab::openFile(obj, string(bPath))) {
         fprintf(stderr, "Cannot open %s\n", bPath);
-	exit(1);
+        exit(1);
     }
     Region* textReg;
     if (!obj->findRegion(textReg, ".text")) {
         fprintf(stderr, "Cannot find .text section\n");
-	exit(1);
+        exit(1);
     }
     FILE *f = fopen(oPre, "w");
     fprintf(f, "%lx\n", textReg->getDiskOffset() + textReg->getDiskSize());
@@ -54,7 +54,7 @@ int main(int argc, char **argv){
     int featSize = atoi(argv[3]);
     if (featSize == 0) {
         fprintf(stderr, "Wrong feature size!\n");
-	exit(1);
+        exit(1);
     }
 
     FeatureAnalyzer *featAnalyzer = NULL;    
@@ -67,14 +67,14 @@ int main(int argc, char **argv){
 
     switch (f) {
         case Idiom:
-	    featAnalyzer = new IdiomAnalyzer();
-	    break;
-	case Graphlet:
-	    featAnalyzer = new GraphletAnalyzer(true);
-	    break;
-	default: 
-	    PrintCodeRange(argv[1], argv[4]);
-	    return 0;
+            featAnalyzer = new IdiomAnalyzer();
+            break;
+        case Graphlet:
+            featAnalyzer = new GraphletAnalyzer(true);
+            break;
+        default: 
+            PrintCodeRange(argv[1], argv[4]);
+            return 0;
     }
 
     featAnalyzer->Setup(argv[1], featSize, argv[4]);

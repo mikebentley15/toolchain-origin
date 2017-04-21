@@ -78,19 +78,19 @@ bool node::operator<(node const& o) const {
     if(this == &o)
             return false;
 
-	if (color_ != NULL && o.color_ != NULL) {
-	    if (color_->compact() != o.color_->compact()) {
-	        return color_->compact() < o.color_->compact();
-	    }
-	} else if (color_ != NULL && o.color_ == NULL) {
-	    return false;
-	} else if (color_ == NULL && o.color_ != NULL) {
-	    return true;
-	}
-	
-	// Continue to compare other fields
-	// when 1. both nodes don't have a color;
-	// or   2. both nodes have the same color.
+        if (color_ != NULL && o.color_ != NULL) {
+            if (color_->compact() != o.color_->compact()) {
+                return color_->compact() < o.color_->compact();
+            }
+        } else if (color_ != NULL && o.color_ == NULL) {
+            return false;
+        } else if (color_ == NULL && o.color_ != NULL) {
+            return true;
+        }
+        
+        // Continue to compare other fields
+        // when 1. both nodes don't have a color;
+        // or   2. both nodes have the same color.
         if(ins_ < o.ins_)
             return true;
         else if(o.ins_ < ins_)

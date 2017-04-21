@@ -44,12 +44,12 @@ func_to_graph(ParseAPI::Function * f, dyn_hash_map<Address,bool> & seen, ColorTy
 
         node_map[b->start()] = n;
         if(COLOR) {
-	    if (t == INSNSCOLOR) {
-	        n->setColor(new InsnColor(node_insns_color(b)));
-	    } else {
-	        n->setColor(new BranchColor(node_branch_color(b)));
-	    }
-	}
+            if (t == INSNSCOLOR) {
+                n->setColor(new InsnColor(node_insns_color(b)));
+            } else {
+                n->setColor(new BranchColor(node_branch_color(b)));
+            }
+        }
     }
     unsigned idx = 0;
     for(auto bit = f->blocks().begin() ; bit != f->blocks().end(); ++bit) {
@@ -61,8 +61,8 @@ func_to_graph(ParseAPI::Function * f, dyn_hash_map<Address,bool> & seen, ColorTy
 
         snode * n = g->nodes()[idx];
         for(auto eit = make_filter_iterator(compound, b->sources().begin(), b->sources().end()); 
-	         eit != make_filter_iterator(compound, b->sources().end(), b->sources().end()); 
-		 ++eit) {
+                 eit != make_filter_iterator(compound, b->sources().end(), b->sources().end()); 
+                 ++eit) {
             Edge * e = *eit;
             if(done_edges.find((size_t)e) != done_edges.end())
                 continue;
@@ -73,8 +73,8 @@ func_to_graph(ParseAPI::Function * f, dyn_hash_map<Address,bool> & seen, ColorTy
             }
         }
         for(auto eit = make_filter_iterator(compound, b->targets().begin(), b->targets().end()); 
-	         eit != make_filter_iterator(compound, b->targets().end(), b->targets().end()); 
-		 ++eit) {
+                 eit != make_filter_iterator(compound, b->targets().end(), b->targets().end()); 
+                 ++eit) {
             Edge * e = *eit;
             if(done_edges.find((size_t)e) != done_edges.end())
                 continue;
@@ -94,37 +94,37 @@ void GraphletAnalyzer::Analyze() {
     featFile = fopen(string(outPrefix + ".instances").c_str(), "w");
     for (auto fit = co->funcs().begin(); fit != co->funcs().end(); ++fit) {
         Function *f = *fit;
-	if (!InTextSection(f)) continue;
-	fprintf(featFile, "%lx", f->addr());
-	
-	map<graphlet,int> c1, c2;
-	map<string, int> c;
-	dyn_hash_map<Address, bool> visited;
+        if (!InTextSection(f)) continue;
+        fprintf(featFile, "%lx", f->addr());
+        
+        map<graphlet,int> c1, c2;
+        map<string, int> c;
+        dyn_hash_map<Address, bool> visited;
 
-	// Instruction graphlet
-	graph * g = func_to_graph(f,visited, INSNSCOLOR);
-	g->mkgraphlets_new(featSize, c1, color, ANON);
-	delete g; 
+        // Instruction graphlet
+        graph * g = func_to_graph(f,visited, INSNSCOLOR);
+        g->mkgraphlets_new(featSize, c1, color, ANON);
+        delete g; 
 
 
         // Branch graphlets
-	visited.clear();
-	g = func_to_graph(f, visited, BRANCHCOLOR);
-	g->mkgraphlets_new(featSize, c2, color, ANON);
-	delete g;
+        visited.clear();
+        g = func_to_graph(f, visited, BRANCHCOLOR);
+        g->mkgraphlets_new(featSize, c2, color, ANON);
+        delete g;
 
         // Generate graphlet string representation
-	for (auto cit=c1.begin(); cit != c1.end(); ++cit){
-	    string f = "G_" + (cit->first).compact(color);
-	    c[f] += 1;
-	}
-	for (auto cit=c2.begin(); cit != c2.end(); ++cit){
-	    string f = "B_" + (cit->first).compact(color);
-	    c[f] += 1;
-	}
+        for (auto cit=c1.begin(); cit != c1.end(); ++cit){
+            string f = "G_" + (cit->first).compact(color);
+            c[f] += 1;
+        }
+        for (auto cit=c2.begin(); cit != c2.end(); ++cit){
+            string f = "B_" + (cit->first).compact(color);
+            c[f] += 1;
+        }
 
-	for (auto cit=c.begin(); cit != c.end(); ++cit) {
-	    AddAndPrintFeat(cit->first, cit->second);
+        for (auto cit=c.begin(); cit != c.end(); ++cit) {
+            AddAndPrintFeat(cit->first, cit->second);
         }
         fprintf(featFile, "\n");
     }

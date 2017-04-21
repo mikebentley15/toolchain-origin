@@ -91,11 +91,11 @@ IdiomTerm::IdiomTerm(Function *f, Address addr) :
                     op.getWriteSet(regs);
 
                     if(!regs.empty()) {
-//		        if (regs.size() > 2) fprintf(stderr, "%s touches more than two registers in one operand\n", insn->format().c_str());
-		        if (regs.size() > 1)
-			    args[i] = MULTIREG;
-			else
-			    args[i] = (*regs.begin())->getID();
+//                        if (regs.size() > 2) fprintf(stderr, "%s touches more than two registers in one operand\n", insn->format().c_str());
+                        if (regs.size() > 1)
+                            args[i] = MULTIREG;
+                        else
+                            args[i] = (*regs.begin())->getID();
                     } else {
                         // immediate
                         args[i] = IMMARG;
@@ -154,11 +154,11 @@ IdiomTerm::IdiomTerm(SymtabCodeSource *sts, Address addr) :
             
             for(unsigned int i=0;i<2 && i<ops.size();++i) {
                 Operand & op = ops[i];
-		if (op.getValue()->size() == 0) {
-		    // This is actually an invalid instruction with valid opcode
-		    len = 0;
-		    return;
-		}
+                if (op.getValue()->size() == 0) {
+                    // This is actually an invalid instruction with valid opcode
+                    len = 0;
+                    return;
+                }
                 if(!op.readsMemory() && !op.writesMemory()) {
                     // register or immediate
                     set<RegisterAST::Ptr> regs;
@@ -166,30 +166,30 @@ IdiomTerm::IdiomTerm(SymtabCodeSource *sts, Address addr) :
                     op.getWriteSet(regs);
 
                     if(!regs.empty()) {
-		        if (regs.size() > 2) {
-			    fprintf(stderr, "%s touches more than two registers in one operand\n", insn->format().c_str());
-			    exit(0);
-			}
-		        if (regs.size() > 1) {
-			    MachRegister r1 = (*regs.begin())->getID();
-			    MachRegister r2 = (*(--regs.end()))->getID();
-			    if (r1 == InvalidReg || r2 == InvalidReg) {
-			        fprintf(stderr, "size == 0 heuristic doesn't work very well...\n");
-				exit(0);
-			    }
-			    args[i] = MULTIREG;
-			}
-			else {
-			    args[i] = (*regs.begin())->getID();
-			    if (MachRegister(args[i]) == InvalidReg) {
-				fprintf(stderr, "invalid reg\n");
-				exit(0);
-			    }
-			    if (args[i] == NOARG || args[i] == IMMARG || args[i] == MEMARG || args[i] == MULTIREG) {
-			        fprintf(stderr, "valid MachRegister is used for non-register\n");
-				exit(0);
-			    } 
-			}
+                        if (regs.size() > 2) {
+                            fprintf(stderr, "%s touches more than two registers in one operand\n", insn->format().c_str());
+                            exit(0);
+                        }
+                        if (regs.size() > 1) {
+                            MachRegister r1 = (*regs.begin())->getID();
+                            MachRegister r2 = (*(--regs.end()))->getID();
+                            if (r1 == InvalidReg || r2 == InvalidReg) {
+                                fprintf(stderr, "size == 0 heuristic doesn't work very well...\n");
+                                exit(0);
+                            }
+                            args[i] = MULTIREG;
+                        }
+                        else {
+                            args[i] = (*regs.begin())->getID();
+                            if (MachRegister(args[i]) == InvalidReg) {
+                                fprintf(stderr, "invalid reg\n");
+                                exit(0);
+                            }
+                            if (args[i] == NOARG || args[i] == IMMARG || args[i] == MEMARG || args[i] == MULTIREG) {
+                                fprintf(stderr, "valid MachRegister is used for non-register\n");
+                                exit(0);
+                            } 
+                        }
                     } else {
                         // immediate
                         args[i] = IMMARG;
@@ -214,50 +214,50 @@ IdiomTerm::IdiomTerm(SymtabCodeSource *sts, Address addr) :
 
 static string HandleAnOperand(unsigned short arg, int style) {
     if(arg != NOARG) {
-	if (arg == MEMARG) {
-	    if (style) return "MEM"; else return ":A";
-	}
-	else if (arg == IMMARG) {
-	    if (style) return "IMM"; else return ":B";
-	}
-	else if (arg == MULTIREG) {
-	    if (style) return "MULTIREG"; else return ":C";
-	} 
-	else if (arg == CALLEESAVEREG) {
-	    if (style) return "Callee saved reg"; else return ":D";
-	} 
-	else if (arg == ARGUREG) {
-	    if (style) return "Argu passing reg"; else return ":E";
-	}
-	else if (arg == OTHERREG) {
-	    if (style) return "Other reg"; else return ":F";
-	}
-	else {
-	    // the human_readble format is still broken
-	    if (style) {
-		if (arg == 0x0010) return x86_64::rip.name();
-	        switch (arg & 0xf000) {
-		    case 0x0000:
-		        //GPR
-			return MachRegister(arg | x86_64::GPR | Arch_x86_64).name();
-		    case 0x1000:
-		        //mmx
-			return MachRegister(arg | x86_64::MMX | Arch_x86_64).name();
-		    case 0x2000:
-		        //xxm
-			return MachRegister(arg | x86_64::XMM | Arch_x86_64).name();
-		    case 0x4000:
-		        // flag bit
-			return MachRegister(arg | x86_64::FLAG | Arch_x86_64).name();
-		}
+        if (arg == MEMARG) {
+            if (style) return "MEM"; else return ":A";
+        }
+        else if (arg == IMMARG) {
+            if (style) return "IMM"; else return ":B";
+        }
+        else if (arg == MULTIREG) {
+            if (style) return "MULTIREG"; else return ":C";
+        } 
+        else if (arg == CALLEESAVEREG) {
+            if (style) return "Callee saved reg"; else return ":D";
+        } 
+        else if (arg == ARGUREG) {
+            if (style) return "Argu passing reg"; else return ":E";
+        }
+        else if (arg == OTHERREG) {
+            if (style) return "Other reg"; else return ":F";
+        }
+        else {
+            // the human_readble format is still broken
+            if (style) {
+                if (arg == 0x0010) return x86_64::rip.name();
+                switch (arg & 0xf000) {
+                    case 0x0000:
+                        //GPR
+                        return MachRegister(arg | x86_64::GPR | Arch_x86_64).name();
+                    case 0x1000:
+                        //mmx
+                        return MachRegister(arg | x86_64::MMX | Arch_x86_64).name();
+                    case 0x2000:
+                        //xxm
+                        return MachRegister(arg | x86_64::XMM | Arch_x86_64).name();
+                    case 0x4000:
+                        // flag bit
+                        return MachRegister(arg | x86_64::FLAG | Arch_x86_64).name();
+                }
 
-	      
-	        return ":" + MachRegister(arg).name();
-	    }
-	    char buf[64];
-	    snprintf(buf, 64, "%x", arg);
-	    return string(":") + string(buf);
-	}
+              
+                return ":" + MachRegister(arg).name();
+            }
+            char buf[64];
+            snprintf(buf, 64, "%x", arg);
+            return string(":") + string(buf);
+        }
     }
     return "";
 }
@@ -272,12 +272,12 @@ IdiomTerm::human_format()
     else if(entryNames_IAPI.find((entryID)(entry_id-1)) == entryNames_IAPI.end()) {
         // Just not lack of entry in entryNames_IAPI, once found such situation, should add an entry
         entryname = "[UNMAPED]";
-	fprintf(stderr, "Found entryID not mapped in entryNames_IAPI %d\n", entry_id - 1);
+        fprintf(stderr, "Found entryID not mapped in entryNames_IAPI %d\n", entry_id - 1);
     }
     else {
         entryname = entryNames_IAPI[(entryID)(entry_id-1)];
-	if (arg1 != NOARG) entryname += " " + HandleAnOperand(arg1, 1);
-	if (arg2 != NOARG) entryname += "," + HandleAnOperand(arg2, 1);
+        if (arg1 != NOARG) entryname += " " + HandleAnOperand(arg1, 1);
+        if (arg2 != NOARG) entryname += "," + HandleAnOperand(arg2, 1);
     }
 
     return entryname;        
@@ -297,7 +297,7 @@ IdiomTerm::format() {
     else {
         char buf[64];
         snprintf(buf, 64, "%x", entry_id);
-	_format += buf + HandleAnOperand(arg1, 0)  + HandleAnOperand(arg2, 0); 
+        _format += buf + HandleAnOperand(arg1, 0)  + HandleAnOperand(arg2, 0); 
     }
     return _format;
 }
@@ -418,19 +418,19 @@ IdiomFeature::format() {
     for(unsigned i=0;i<_terms.size();++i) {
         // XXX shrink output by removing NOARGs from right
 //        if (*(IdiomTerm*)_terms[i] == WILDCARD_IDIOM) {
-//	    if (i+1<_terms.size()) _format += "*_"; else _format += "*";
-//	} else {
-	    uint64_t out = ((IdiomTerm*)_terms[i])->to_int();
-	    if((out & 0xffff) == NOARG)
-	        out = out >> 16;
-	    if((out & 0xffff) == NOARG)
-	        out = out >> 16;
-	    if(i+1<_terms.size())
-	        snprintf(buf,64,"%lx_",out);
-	    else
-	        snprintf(buf,64,"%lx",out);
-	    _format += buf;
-//	}
+//            if (i+1<_terms.size()) _format += "*_"; else _format += "*";
+//        } else {
+            uint64_t out = ((IdiomTerm*)_terms[i])->to_int();
+            if((out & 0xffff) == NOARG)
+                out = out >> 16;
+            if((out & 0xffff) == NOARG)
+                out = out >> 16;
+            if(i+1<_terms.size())
+                snprintf(buf,64,"%lx_",out);
+            else
+                snprintf(buf,64,"%lx",out);
+            _format += buf;
+//        }
     }
 
     return _format;
@@ -440,6 +440,6 @@ bool IdiomFeature::operator< (const IdiomFeature &f) const {
     if (_terms.size() != f._terms.size()) return _terms.size() < f._terms.size();
     for (size_t i = 0; i < _terms.size(); ++i)
         if (*(IdiomFeature*)(_terms[i]) < *(IdiomFeature*)(f._terms[i])) return true;
-	else if (*(IdiomFeature*)(f._terms[i]) < *(IdiomFeature*)(_terms[i])) return false;
+        else if (*(IdiomFeature*)(f._terms[i]) < *(IdiomFeature*)(_terms[i])) return false;
     return false;
 }
