@@ -29,6 +29,8 @@ DEP         += -lcommon
 
 PARSE_SRC    += main.cpp
 PARSE_SRC    += binparse.cpp
+PARSE_SRC    += util.cpp
+PARSE_SRC    += CallTree.cpp
 
 HEADERS      = $(wildcard *.h)
 

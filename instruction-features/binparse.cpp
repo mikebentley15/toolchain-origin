@@ -1,9 +1,12 @@
 #include "binparse.h"
+#include "CallTree.h"
+#include "util.h"
 
 #include <CodeObject.h>
 #include <CodeSource.h>
 #include <CFG.h>
 #include <InstructionDecoder.h>
+#include <Instruction.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -25,25 +28,6 @@ using Address = Dyninst::Address;
 using Funclist = Dyninst::ParseAPI::CodeObject::funclist;
 
 namespace {
-
-Dyninst::Address get_call_address(
-    boost::shared_ptr<Instruction> inst,
-    Address base)
-{
-  Dyninst::Address addr = 0;
-  auto arch = inst->getArch();
-  auto target = inst->getControlFlowTarget();
-  if (target == nullptr) {
-    return addr;
-  }
-  Expression::Ptr thePC(new RegisterAST(MachRegister::getPC(arch)));
-  target->bind(thePC.get(), Result(Dyninst::InstructionAPI::u32, base));
-  Result res = target->eval();
-  if (res.defined) {
-    addr = res.convert<uintmax_t>();
-  }
-  return addr;
-}
 
 void print_function(Dyninst::ParseAPI::Function* func, ostream &out) {
   out << func->name() << endl
@@ -182,8 +166,20 @@ void parse_binary(const string &infile, ostream &out, Dyninst::Address start) {
       return string_ends_with(func->name(), "::run_impl");
       });
   for (auto func : unittests) {
-    print_function(func, out);
-    //print_successors(func, out);
+    //print_function(func, out);
+  }
+
+  // Make a map of functions: addr -> func*
+  std::map<Dyninst::Address, Dyninst::ParseAPI::Function*> func_map;
+  for (auto func : funcs) {
+    func_map.emplace(func->addr(), func);
+  }
+
+  for (auto func : unittests) {
+    CallTree calltree(func_map, func);
+    out << "Call tree for " << func->name() << ":" << endl;
+    calltree.print_names(1, out);
+    calltree.print_instructions(out);
   }
   // TODO: analyze what was parsed
 }
