@@ -22,6 +22,7 @@ using Dyninst::InstructionAPI::Expression;
 using Dyninst::InstructionAPI::RegisterAST;
 using Dyninst::InstructionAPI::Result;
 using Dyninst::InstructionAPI::Instruction;
+using Dyninst::ParseAPI::Function;
 using Dyninst::MachRegister;
 
 using Address = Dyninst::Address;
@@ -29,7 +30,7 @@ using Funclist = Dyninst::ParseAPI::CodeObject::funclist;
 
 namespace {
 
-void print_function(Dyninst::ParseAPI::Function* func, ostream &out) {
+void print_function(Function* func, ostream &out) {
   out << func->name() << endl
       << "  Address:   0x" << std::hex << func->addr() << std::dec << endl
       //<< "  Is leaf:   " << func->_is_leaf_function << endl
@@ -138,7 +139,7 @@ bool string_ends_with(const string &full_string, const string &ending) {
 
 } // End of unnamed namespace
 
-void parse_binary(const string &infile, ostream &out, Dyninst::Address start) {
+void parse_binary(const string &infile, ostream &out, Address start) {
   // Copy the infile string, since the SymtabCodeSource constructor
   // takes a non-const char*, which is dumb
   // TODO: change it in dyninst and create a pull request
@@ -162,7 +163,7 @@ void parse_binary(const string &infile, ostream &out, Dyninst::Address start) {
   //}
 
   Funclist unittests(funcs);
-  remove_if_set(unittests, [] (const Dyninst::ParseAPI::Function* func) {
+  remove_if_set(unittests, [] (const Function* func) {
       return string_ends_with(func->name(), "::run_impl");
       });
   for (auto func : unittests) {
@@ -170,16 +171,32 @@ void parse_binary(const string &infile, ostream &out, Dyninst::Address start) {
   }
 
   // Make a map of functions: addr -> func*
-  std::map<Dyninst::Address, Dyninst::ParseAPI::Function*> func_map;
+  std::map<Address, Function*> func_map;
   for (auto func : funcs) {
     func_map.emplace(func->addr(), func);
   }
 
   for (auto func : unittests) {
-    CallTree calltree(func_map, func);
-    out << "Call tree for " << func->name() << ":" << endl;
-    calltree.print_names(1, out);
-    calltree.print_instructions(out);
+    //CallTree calltree(func_map, func);
+    //out << "Call tree for " << func->name() << ":" << endl;
+    //calltree.print_names(1, out);
+    
+    auto instructions = CallTree::inline_functions(func_map, func,
+        [](Function* func) {
+          return func->name().find("std::") != 0;
+        });
+
+    decltype(instructions) before_instructions;
+    for_each_instruction(func,
+        [&before_instructions]
+        (boost::shared_ptr<Instruction> instr, Dyninst::Address addr) {
+          before_instructions.emplace_back(instr);
+        });
+
+    out << "Function " << func->name() << " inlining: "
+        << before_instructions.size() << " -> " << instructions.size()
+        << endl;
+    // TODO: Print the instructions
   }
   // TODO: analyze what was parsed
 }

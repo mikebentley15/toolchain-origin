@@ -4,6 +4,7 @@ CXXFLAGS    += -g
 CXXFLAGS    += -Wall
 CXXFLAGS    += -std=c++11
 CXXFLAGS    += -O2
+CXXFLAGS    += -fmax-errors=3
 
 DYNINST_ROOT = /usr/local
 GPERF        = /usr

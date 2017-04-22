@@ -1,6 +1,9 @@
 #include "util.h"
 
-#include "dyntypes.h"
+#include <dyntypes.h>
+#include <CodeObject.h>
+#include <Instruction.h>
+#include <InstructionDecoder.h>
 
 using Dyninst::InstructionAPI::Instruction;
 using Dyninst::MachRegister;
@@ -32,3 +35,27 @@ Dyninst::Address get_call_address(
   return addr;
 }
 
+void for_each_instruction(Dyninst::ParseAPI::Function* func,
+    const std::function<
+      void(boost::shared_ptr<Dyninst::InstructionAPI::Instruction>,
+           Dyninst::Address)
+      > &operation)
+{
+  for (auto blk : func->blocks()) {
+    auto addr = blk->start();
+    const char* buf = reinterpret_cast<char*>(blk->region()->getPtrToInstruction(addr));
+    if (buf == nullptr) {
+      continue;
+    }
+
+    auto arch = blk->region()->getArch();
+    Dyninst::InstructionAPI::InstructionDecoder dec(buf, blk->size(), arch);
+
+    auto instruction = dec.decode();
+    while (instruction != nullptr) {
+      operation(instruction, addr);
+      addr += instruction->size();
+      instruction = dec.decode();
+    }
+  }
+}
