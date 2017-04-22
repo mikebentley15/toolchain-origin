@@ -25,7 +25,7 @@ DEP         += -linstructionAPI
 #DEP         += -ldwarf 
 #DEP         += -ldynElf 
 #DEP         += -lelf 
-#DEP         += -lcommon
+DEP         += -lcommon
 
 PARSE_SRC    += main.cpp
 PARSE_SRC    += binparse.cpp

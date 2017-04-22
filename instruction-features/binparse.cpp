@@ -5,6 +5,8 @@
 #include <CFG.h>
 #include <InstructionDecoder.h>
 
+#include <boost/shared_ptr.hpp>
+
 #include <memory>
 
 using std::string;
@@ -12,9 +14,37 @@ using std::ostream;
 using std::endl;
 using std::unique_ptr;
 
+using Dyninst::Architecture;
+using Dyninst::InstructionAPI::Expression;
+using Dyninst::InstructionAPI::RegisterAST;
+using Dyninst::InstructionAPI::Result;
+using Dyninst::InstructionAPI::Instruction;
+using Dyninst::MachRegister;
+
+using Address = Dyninst::Address;
 using Funclist = Dyninst::ParseAPI::CodeObject::funclist;
 
 namespace {
+
+Dyninst::Address get_call_address(
+    boost::shared_ptr<Instruction> inst,
+    Address base)
+{
+  Dyninst::Address addr = 0;
+  auto arch = inst->getArch();
+  auto target = inst->getControlFlowTarget();
+  if (target == nullptr) {
+    return addr;
+  }
+  Expression::Ptr thePC(new RegisterAST(MachRegister::getPC(arch)));
+  target->bind(thePC.get(), Result(Dyninst::InstructionAPI::u32, base));
+  Result res = target->eval();
+  if (res.defined) {
+    addr = res.convert<uintmax_t>();
+  }
+  return addr;
+}
+
 void print_function(Dyninst::ParseAPI::Function* func, ostream &out) {
   out << func->name() << endl
       << "  Address:   0x" << std::hex << func->addr() << std::dec << endl
@@ -32,17 +62,29 @@ void print_function(Dyninst::ParseAPI::Function* func, ostream &out) {
     out << "    Block size: " << blk->size() << endl;
     
     // TODO: look at block interface
-    Dyninst::InstructionAPI::InstructionDecoder
-      dec(buf, blk->size(), blk->region()->getArch());
+    auto arch = blk->region()->getArch();
+    Dyninst::InstructionAPI::InstructionDecoder dec(buf, blk->size(), arch);
     
     // TODO: look at instruction
     auto instruction = dec.decode();
     while (instruction != nullptr) {
       auto op = instruction->getOperation();
+      auto target = instruction->getControlFlowTarget();
+      std::vector<Dyninst::InstructionAPI::Operand> args;
+      instruction->getOperands(args);
       out << "      +("
-          << op.getPrefixID() << ":" << op.getID() << ":" << op.format()
+          << op.getPrefixID() << ":" << op.getID()
           << ","
+          << op.format()
+          << ",(";
+      for (auto arg : args) {
+        out << arg.format(arch, addr)
+            << ",";
+      }
+      out << "),"
           << instruction->size()
+          << ","
+          << static_cast<int>(instruction->getCategory())
           << ","
           << (instruction->readsMemory() ? "t" : "f")
           << ","
@@ -52,11 +94,34 @@ void print_function(Dyninst::ParseAPI::Function* func, ostream &out) {
           << ","
           << (instruction->isLegalInsn() ? "t" : "f")
           << ","
-          << (instruction->getControlFlowTarget() != nullptr ? "t" : "f")
+          << (target != nullptr ? "t" : "f")
           << ","
-          << static_cast<int>(instruction->getCategory())
-          << ")"
-          << endl;
+          << (target != nullptr ? target->format() : "?")
+          << ","
+          << instruction->format()
+          << ")";
+      auto toaddr = get_call_address(instruction, addr);
+      if (toaddr > 0) {
+        out << " -> " << toaddr;
+      }
+      out << endl;
+      for (auto it = instruction->cft_begin(); it != instruction->cft_end(); ++it) {
+        out << "        ^("
+            << (it->isCall ? "t" : "f")
+            << ","
+            << (it->isIndirect ? "t" : "f")
+            << ","
+            << (it->isConditional ? "t" : "f")
+            << ","
+            << (it->isFallthrough ? "t" : "f")
+            << ","
+            << it->target->size()
+            << ","
+            << it->target->format()
+            << ")"
+            << endl;
+      }
+      addr += instruction->size();
       instruction = dec.decode();
     }
   }
@@ -118,6 +183,7 @@ void parse_binary(const string &infile, ostream &out, Dyninst::Address start) {
       });
   for (auto func : unittests) {
     print_function(func, out);
+    //print_successors(func, out);
   }
   // TODO: analyze what was parsed
 }
