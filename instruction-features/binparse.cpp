@@ -47,9 +47,11 @@ void parse_binary(const string &infile, ostream &out, Dyninst::Address start) {
       }
       out << ".";
       
+      // TODO: look at block interface
       Dyninst::InstructionAPI::InstructionDecoder
         dec(buf, blk->size(), blk->region()->getArch());
-
+      
+      // TODO: look at instruction
       auto instruction = dec.decode();
       while (instruction != nullptr) {
         out << "+";
