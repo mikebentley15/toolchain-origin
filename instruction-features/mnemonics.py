@@ -1136,3 +1136,6 @@ mnemonics = [
     'xorps',
     ]
 mnemonic_map = { v: i for i, v in enumerate(mneomonics) }
+
+prefix_id_range = (0, 2)
+id_range = (0, len(mnemonics))
