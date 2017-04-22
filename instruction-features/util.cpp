@@ -59,3 +59,78 @@ void for_each_instruction(Dyninst::ParseAPI::Function* func,
     }
   }
 }
+
+std::string instruction_to_string(
+    boost::shared_ptr<Dyninst::InstructionAPI::Instruction> instruction,
+    Dyninst::Address addr)
+{
+  std::ostringstream out;
+  auto op = instruction->getOperation();
+  auto target = instruction->getControlFlowTarget();
+  std::vector<Dyninst::InstructionAPI::Operand> args;
+  instruction->getOperands(args);
+  out << "Instruction("
+      << op.getPrefixID() << ":" << op.getID()
+      << ","
+      << op.format()
+      << ","
+      << instruction->size()
+      << ","
+      << static_cast<int>(instruction->getCategory())
+      << ","
+      << (instruction->readsMemory() ? "t" : "f")
+      << ","
+      << (instruction->writesMemory() ? "t" : "f")
+      << ","
+      << (instruction->isValid() ? "t" : "f")
+      << ","
+      << (instruction->isLegalInsn() ? "t" : "f")
+      << ","
+      << (target != nullptr ? "t" : "f")
+      << ","
+      << (target != nullptr ? target->format() : "?")
+      << ","
+      << instruction->format(addr)
+      << ")";
+  auto toaddr = get_call_address(instruction, addr);
+  if (toaddr > 0) {
+    out << " -> " << toaddr;
+  }
+  addr += instruction->size();
+  return out.str();
+}
+
+std::string instruction_feature_header =
+  "prefixId,id,size,category,isRead,isWrite,isValid,isLegal";
+
+std::string instruction_to_feature_string(
+    boost::shared_ptr<Dyninst::InstructionAPI::Instruction> instruction,
+    Dyninst::Address addr)
+{
+  (void)addr; // unused
+  std::ostringstream out;
+  auto op = instruction->getOperation();
+  auto target = instruction->getControlFlowTarget();
+  std::vector<Dyninst::InstructionAPI::Operand> args;
+  instruction->getOperands(args);
+  out << op.getPrefixID()
+      << ","
+      << op.getID()
+      << ","
+      << instruction->size()
+      << ","
+      << static_cast<int>(instruction->getCategory())
+      << ","
+      << instruction->readsMemory()
+      << ","
+      << instruction->writesMemory()
+      << ","
+      << instruction->isValid()
+      << ","
+      << instruction->isLegalInsn();
+  return out.str();
+}
+
+
+
+

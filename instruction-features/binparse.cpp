@@ -186,17 +186,24 @@ void parse_binary(const string &infile, ostream &out, Address start) {
           return func->name().find("std::") != 0;
         });
 
-    decltype(instructions) before_instructions;
-    for_each_instruction(func,
-        [&before_instructions]
-        (boost::shared_ptr<Instruction> instr, Dyninst::Address addr) {
-          before_instructions.emplace_back(instr);
-        });
+    //decltype(instructions) before_instructions;
+    //for_each_instruction(func,
+    //    [&before_instructions]
+    //    (boost::shared_ptr<Instruction> instr, Dyninst::Address addr) {
+    //      before_instructions.emplace_back(instr);
+    //    });
 
-    out << "Function " << func->name() << " inlining: "
-        << before_instructions.size() << " -> " << instructions.size()
-        << endl;
-    // TODO: Print the instructions
+    //out << "Function " << func->name() << " inlining: "
+    //    << before_instructions.size() << " -> " << instructions.size()
+    //    << endl;
+
+    // Print the instructions
+    out << "Function " << func->name() << endl;
+    out << instruction_feature_header << endl;
+    for (auto instruction : instructions) {
+      out << instruction_to_feature_string(instruction) << endl;
+    }
+    out << endl;
   }
   // TODO: analyze what was parsed
 }

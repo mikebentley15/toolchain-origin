@@ -27,4 +27,15 @@ void for_each_instruction(Dyninst::ParseAPI::Function* func,
            Dyninst::Address)
       > &operation);
 
+std::string instruction_to_string(
+    boost::shared_ptr<Dyninst::InstructionAPI::Instruction> instruction,
+    Dyninst::Address addr = 0);
+
+extern std::string instruction_feature_header;
+
+std::string instruction_to_feature_string(
+    boost::shared_ptr<Dyninst::InstructionAPI::Instruction> instruction,
+    Dyninst::Address addr = 0);
+
+
 #endif // UTIL_H
