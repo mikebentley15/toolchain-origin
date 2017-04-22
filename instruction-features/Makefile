@@ -19,7 +19,7 @@ LIB         += -L$(DYNINST_ROOT)/$(PLATFORM)/lib
 #LIB         += -L$(ELF_LIB)
 
 DEP         += -lparseAPI
-#DEP         += -linstructionAPI 
+DEP         += -linstructionAPI 
 #DEP         += -lsymtabAPI 
 #DEP         += -ldynDwarf 
 #DEP         += -ldwarf 

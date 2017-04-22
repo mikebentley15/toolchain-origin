@@ -3,6 +3,7 @@
 #include <CodeObject.h>
 #include <CodeSource.h>
 #include <CFG.h>
+#include <InstructionDecoder.h>
 
 #include <memory>
 
@@ -32,12 +33,30 @@ void parse_binary(const string &infile, ostream &out, Dyninst::Address start) {
   auto funcs = obj.funcs();
   for (auto func : funcs) {
     out << func->name() << endl
-        << "  Address:   " << func->addr() << endl
-        << "  Is leaf:   " << func->_is_leaf_function << endl
-        << "  Ret addr:  " << func->_ret_addr << endl
+        << "  Address:   0x" << std::hex << func->addr() << std::dec << endl
+        //<< "  Is leaf:   " << func->_is_leaf_function << endl
+        //<< "  Ret addr:  " << func->_ret_addr << endl
         << "  Is parsed: " << func->parsed() << endl
         << "  # blocks:  " << func->num_blocks() << endl
-        << endl;
+        << "  Block expansion: ";
+    for (auto blk : func->blocks()) {
+      auto addr = blk->start();
+      const char* buf = reinterpret_cast<char*>(blk->region()->getPtrToInstruction(addr));
+      if (buf == nullptr) {
+        continue;
+      }
+      out << ".";
+      
+      Dyninst::InstructionAPI::InstructionDecoder
+        dec(buf, blk->size(), blk->region()->getArch());
+
+      auto instruction = dec.decode();
+      while (instruction != nullptr) {
+        out << "+";
+        instruction = dec.decode();
+      }
+    }
+    out << endl << endl;
   }
 
   // TODO: analyze what was parsed
